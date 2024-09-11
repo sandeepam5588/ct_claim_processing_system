@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Payment Calculation</title>
+</head>
+<body>
+<h1>Payment Calculated Successfully!</h1>
+<p>Claim ID: <span th:text="${claim.claimId}"></span></p>
+<p>Total Amount: <span th:text="${claim.totalAmount}"></span></p>
+<p>Member Cost Share: <span th:text="${claim.memberCostShare}"></span></p>
+<p>Payer Responsibility: <span th:text="${claim.payerCostShare}"></span></p>
+</body>
+</html>
