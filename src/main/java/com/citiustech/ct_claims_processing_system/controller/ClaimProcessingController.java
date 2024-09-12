@@ -32,6 +32,11 @@ public class ClaimProcessingController {
         return "claim-submitted-view"; // Redirect to a Thymeleaf template showing success message
     }
 
+    @GetMapping("/get-form/{claimId}")
+    public Claim getClaim(@PathVariable String claimId) {
+        return claimProcessingService.getClaim(claimId);  // Return the Thymeleaf template for the form
+    }
+
     @GetMapping("/calculate-payment")
     public String calculatePayment(@RequestParam String claimId, Model model) {
         // Call the service to handle the business logic of payment calculation

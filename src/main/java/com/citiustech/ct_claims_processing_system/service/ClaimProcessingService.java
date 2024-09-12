@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.ui.Model;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -88,5 +89,10 @@ public class ClaimProcessingService {
 
         claimRepository.save(claim);
         return claim;
+    }
+
+    public Claim getClaim(String claimId) {
+        Optional<Claim> claim = claimRepository.findById(claimId);
+        return claim.orElse(null);
     }
 }
