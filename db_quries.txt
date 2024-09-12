@@ -1,0 +1,281 @@
+S&T Database tables
+-----------------------
+
+CREATE TABLE `claim` (
+  `claim_id` varchar(36) NOT NULL,
+  `provider_id` varchar(36) DEFAULT NULL,
+  `member_id` varchar(36) DEFAULT NULL,
+  `service_list` json DEFAULT NULL,
+  `fraud_flag` tinyint DEFAULT NULL,
+  `claim_status` varchar(50) DEFAULT NULL,
+  `payer_cost_share` json DEFAULT NULL,
+  `member_cost_share` json DEFAULT NULL,
+  `eob_details` json DEFAULT NULL,
+  `denial_reasons` varchar(255) DEFAULT NULL,
+  `total_amount` double DEFAULT NULL,
+  PRIMARY KEY (`claim_id`),
+  KEY `provider_id` (`provider_id`),
+  KEY `member_id` (`member_id`),
+  CONSTRAINT `claim_ibfk_1` FOREIGN KEY (`provider_id`) REFERENCES `provider` (`provider_id`),
+  CONSTRAINT `claim_ibfk_2` FOREIGN KEY (`member_id`) REFERENCES `member` (`member_id`),
+  CONSTRAINT `claim_chk_1` CHECK ((`fraud_flag` in (0,1))),
+  CONSTRAINT `claim_chk_2` CHECK ((`claim_status` in (_utf8mb4'REQUEST_RECEIVED',_utf8mb4'VALIDATION',_utf8mb4'IN-PROGRESS',_utf8mb4'UNDER_REVIEW',_utf8mb4'ADJUDICATION',_utf8mb4'DENIED',_utf8mb4'APPROVED',_utf8mb4'REJECTED',_utf8mb4'PAYMENT_INITIATED',_utf8mb4'PAID')))
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+
+CREATE TABLE `contract` (
+  `contract_id` int NOT NULL AUTO_INCREMENT,
+  `provider_id` varchar(36) DEFAULT NULL,
+  `contract_terms` json DEFAULT NULL,
+  `start_date` timestamp NULL DEFAULT NULL,
+  `end_date` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`contract_id`),
+  KEY `provider_id` (`provider_id`),
+  CONSTRAINT `contract_ibfk_1` FOREIGN KEY (`provider_id`) REFERENCES `provider` (`provider_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+
+CREATE TABLE `fraud_alert` (
+  `alert_id` int NOT NULL AUTO_INCREMENT,
+  `claim_id` varchar(36) DEFAULT NULL,
+  `provider_id` varchar(36) DEFAULT NULL,
+  `alert_level` varchar(10) DEFAULT NULL,
+  `alert_reason` varchar(255) DEFAULT NULL,
+  `alert_action_taken` varchar(255) DEFAULT NULL,
+  `alert_reported_date` timestamp NULL DEFAULT NULL,
+  `last_update` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`alert_id`),
+  KEY `claim_id` (`claim_id`),
+  KEY `provider_id` (`provider_id`),
+  CONSTRAINT `fraud_alert_ibfk_1` FOREIGN KEY (`claim_id`) REFERENCES `claim` (`claim_id`),
+  CONSTRAINT `fraud_alert_ibfk_2` FOREIGN KEY (`provider_id`) REFERENCES `provider` (`provider_id`),
+  CONSTRAINT `fraud_alert_chk_1` CHECK ((`alert_level` in (_utf8mb4'LOW',_utf8mb4'MEDIUM',_utf8mb4'HIGH')))
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+
+CREATE TABLE `member` (
+  `member_id` varchar(36) NOT NULL,
+  `policy_id` int DEFAULT NULL,
+  `member_name` varchar(255) DEFAULT NULL,
+  `member_dob` timestamp NULL DEFAULT NULL,
+  `gender` varchar(10) DEFAULT NULL,
+  `policy_start_date` timestamp NULL DEFAULT NULL,
+  `policy_end_date` timestamp NULL DEFAULT NULL,
+  `member_cost_share` json DEFAULT NULL,
+  PRIMARY KEY (`member_id`),
+  KEY `policy_id` (`policy_id`),
+  CONSTRAINT `member_ibfk_1` FOREIGN KEY (`policy_id`) REFERENCES `policy` (`policy_id`),
+  CONSTRAINT `member_chk_1` CHECK ((`gender` in (_utf8mb4'MALE',_utf8mb4'FEMALE',_utf8mb4'OTHER')))
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+
+CREATE TABLE `payment` (
+  `payment_id` varchar(36) NOT NULL,
+  `claim_id` varchar(36) DEFAULT NULL,
+  `payment_amount` double DEFAULT NULL,
+  `payment_status` varchar(10) DEFAULT NULL,
+  `payment_method` varchar(10) DEFAULT NULL,
+  `payment_date` timestamp NULL DEFAULT NULL,
+  `provider_acc_number` varchar(255) DEFAULT NULL,
+  PRIMARY KEY (`payment_id`),
+  KEY `claim_id` (`claim_id`),
+  CONSTRAINT `payment_ibfk_1` FOREIGN KEY (`claim_id`) REFERENCES `claim` (`claim_id`),
+  CONSTRAINT `payment_chk_2` CHECK ((`payment_method` in (_utf8mb4'EFT',_utf8mb4'CHECK'))),
+  CONSTRAINT `payment_status_chk` CHECK ((`payment_status` in (_utf8mb4'PAID',_utf8mb4'REJECTED',_utf8mb4'INITIATED',_utf8mb4'NOT-INITIATED')))
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+
+CREATE TABLE `policy` (
+  `policy_id` int NOT NULL AUTO_INCREMENT,
+  `policy_name` varchar(255) DEFAULT NULL,
+  PRIMARY KEY (`policy_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+
+CREATE TABLE `provider` (
+  `provider_id` varchar(36) NOT NULL,
+  `provider_name` varchar(255) DEFAULT NULL,
+  `provider_address` varchar(255) DEFAULT NULL,
+  `provider_contact` varchar(255) DEFAULT NULL,
+  `provider_bank_details` json DEFAULT NULL,
+  PRIMARY KEY (`provider_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+CREATE TABLE `provider_service_link` (
+  `service_id` varchar(36) NOT NULL,
+  `provider_id` varchar(36) DEFAULT NULL,
+  `effective_from_date` date DEFAULT NULL,
+  `effective_to_date` date DEFAULT NULL,
+  PRIMARY KEY (`service_id`),
+  KEY `provider_id` (`provider_id`),
+  CONSTRAINT `provider_service_link_ibfk_1` FOREIGN KEY (`provider_id`) REFERENCES `provider` (`provider_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+
+CREATE TABLE `service_codes` (
+  `service_code` varchar(50) NOT NULL,
+  `service` varchar(255) DEFAULT NULL,
+  `description` varchar(255) DEFAULT NULL,
+  PRIMARY KEY (`service_code`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+
+
+
+
+INSERT INTO `claim` (claim_id, provider_id, member_id, service_list, fraud_flag, claim_status, payer_cost_share, member_cost_share, eob_details, denial_reasons, total_amount)
+VALUES ('claim1', 'provider1', 'member1', JSON_ARRAY('service1', 'service2'), 0, 'REQUEST_RECEIVED', NULL, NULL, NULL, NULL, 500.00);
+
+INSERT INTO `claim` (claim_id, provider_id, member_id, service_list, fraud_flag, claim_status, payer_cost_share, member_cost_share, eob_details, denial_reasons, total_amount)
+VALUES ('claim2', 'provider2', 'member2', JSON_ARRAY('service3'), 1, 'UNDER_REVIEW', NULL, NULL, NULL, 'Suspected fraud', 750.00);
+
+INSERT INTO `claim` (claim_id, provider_id, member_id, service_list, fraud_flag, claim_status, payer_cost_share, member_cost_share, eob_details, denial_reasons, total_amount)
+VALUES ('claim3', 'provider3', 'member3', JSON_ARRAY('service4', 'service5'), 0, 'APPROVED', NULL, NULL, NULL, NULL, 1200.00);
+
+INSERT INTO `claim` (claim_id, provider_id, member_id, service_list, fraud_flag, claim_status, payer_cost_share, member_cost_share, eob_details, denial_reasons, total_amount)
+VALUES ('claim4', 'provider1', 'member4', JSON_ARRAY('service6'), 0, 'PAID', JSON_OBJECT('payer_share', 100), JSON_OBJECT('member_share', 50), NULL, NULL, 1500.00);
+
+INSERT INTO `claim` (claim_id, provider_id, member_id, service_list, fraud_flag, claim_status, payer_cost_share, member_cost_share, eob_details, denial_reasons, total_amount)
+VALUES ('claim5', 'provider2', 'member5', JSON_ARRAY('service7'), 1, 'DENIED', NULL, NULL, NULL, 'Incorrect details', 0.00);
+
+
+
+
+
+
+INSERT INTO `contract` (provider_id, contract_terms, start_date, end_date)
+VALUES ('provider1', JSON_OBJECT('term1', 'value1', 'term2', 'value2'), '2023-01-01 00:00:00', '2024-01-01 00:00:00');
+
+INSERT INTO `contract` (provider_id, contract_terms, start_date, end_date)
+VALUES ('provider2', JSON_OBJECT('term1', 'value1'), '2022-01-01 00:00:00', '2023-01-01 00:00:00');
+
+INSERT INTO `contract` (provider_id, contract_terms, start_date, end_date)
+VALUES ('provider3', JSON_OBJECT('term1', 'value1', 'term2', 'value2', 'term3', 'value3'), '2021-06-01 00:00:00', '2022-06-01 00:00:00');
+
+INSERT INTO `contract` (provider_id, contract_terms, start_date, end_date)
+VALUES ('provider4', JSON_OBJECT('term1', 'value1'), '2020-09-01 00:00:00', '2021-09-01 00:00:00');
+
+INSERT INTO `contract` (provider_id, contract_terms, start_date, end_date)
+VALUES ('provider5', JSON_OBJECT('term1', 'value1', 'term2', 'value2'), '2023-05-01 00:00:00', '2024-05-01 00:00:00');
+
+
+
+
+
+INSERT INTO `fraud_alert` (claim_id, provider_id, alert_level, alert_reason, alert_action_taken, alert_reported_date, last_update)
+VALUES ('claim1', 'provider1', 'LOW', 'Minor issue detected', 'Under review', '2024-01-01 10:00:00', '2024-01-02 12:00:00');
+
+INSERT INTO `fraud_alert` (claim_id, provider_id, alert_level, alert_reason, alert_action_taken, alert_reported_date, last_update)
+VALUES ('claim2', 'provider2', 'MEDIUM', 'Potential fraud', 'Alert raised', '2024-01-03 14:00:00', '2024-01-04 16:00:00');
+
+INSERT INTO `fraud_alert` (claim_id, provider_id, alert_level, alert_reason, alert_action_taken, alert_reported_date, last_update)
+VALUES ('claim3', 'provider3', 'HIGH', 'Confirmed fraud', 'Claim rejected', '2024-01-05 09:00:00', '2024-01-06 11:00:00');
+
+INSERT INTO `fraud_alert` (claim_id, provider_id, alert_level, alert_reason, alert_action_taken, alert_reported_date, last_update)
+VALUES ('claim4', 'provider4', 'LOW', 'Suspected data mismatch', 'Investigation ongoing', '2024-01-07 13:00:00', '2024-01-08 15:00:00');
+
+INSERT INTO `fraud_alert` (claim_id, provider_id, alert_level, alert_reason, alert_action_taken, alert_reported_date, last_update)
+VALUES ('claim5', 'provider5', 'MEDIUM', 'Unusual patterns detected', 'Alert escalated', '2024-01-09 17:00:00', '2024-01-10 19:00:00');
+
+
+
+
+
+INSERT INTO `member` (member_id, policy_id, member_name, member_dob, gender, policy_start_date, policy_end_date, member_cost_share)
+VALUES ('member1', 1, 'John Doe', '1990-01-01 00:00:00', 'MALE', '2020-01-01 00:00:00', '2025-01-01 00:00:00', JSON_OBJECT('cost_share', 100));
+
+INSERT INTO `member` (member_id, policy_id, member_name, member_dob, gender, policy_start_date, policy_end_date, member_cost_share)
+VALUES ('member2', 2, 'Jane Smith', '1985-05-05 00:00:00', 'FEMALE', '2021-01-01 00:00:00', '2026-01-01 00:00:00', JSON_OBJECT('cost_share', 200));
+
+INSERT INTO `member` (member_id, policy_id, member_name, member_dob, gender, policy_start_date, policy_end_date, member_cost_share)
+VALUES ('member3', 3, 'Alex Johnson', '1995-09-09 00:00:00', 'OTHER', '2019-01-01 00:00:00', '2024-01-01 00:00:00', JSON_OBJECT('cost_share', 300));
+
+INSERT INTO `member` (member_id, policy_id, member_name, member_dob, gender, policy_start_date, policy_end_date, member_cost_share)
+VALUES ('member4', 1, 'Emily Davis', '2000-12-12 00:00:00', 'FEMALE', '2022-01-01 00:00:00', '2027-01-01 00:00:00', JSON_OBJECT('cost_share', 150));
+
+INSERT INTO `member` (member_id, policy_id, member_name, member_dob, gender, policy_start_date, policy_end_date, member_cost_share)
+VALUES ('member5', 2, 'Michael Brown', '1992-03-03 00:00:00', 'MALE', '2023-01-01 00:00:00', '2028-01-01 00:00:00', JSON_OBJECT('cost_share', 250));
+
+
+
+
+
+INSERT INTO `payment` (payment_id, claim_id, payment_amount, payment_status, payment_method, payment_date, provider_acc_number)
+VALUES ('payment1', 'claim1', 500.00, 'PAID', 'EFT', '2024-01-01 00:00:00', '123456789');
+
+INSERT INTO `payment` (payment_id, claim_id, payment_amount, payment_status, payment_method, payment_date, provider_acc_number)
+VALUES ('payment2', 'claim2', 750.00, 'REJECTED', 'CHECK', '2024-02-01 00:00:00', '987654321');
+
+INSERT INTO `payment` (payment_id, claim_id, payment_amount, payment_status, payment_method, payment_date, provider_acc_number)
+VALUES ('payment3', 'claim3', 1200.00, 'INITIATED', 'EFT', '2024-03-01 00:00:00', '456789123');
+
+INSERT INTO `payment` (payment_id, claim_id, payment_amount, payment_status, payment_method, payment_date, provider_acc_number)
+VALUES ('payment4', 'claim4', 1500.00, 'NOT-INITIATED', 'CHECK', '2024-04-01 00:00:00', '654321987');
+
+INSERT INTO `payment` (payment_id, claim_id, payment_amount, payment_status, payment_method, payment_date, provider_acc_number)
+VALUES ('payment5', 'claim5', 1000.00, 'PAID', 'EFT', '2024-05-01 00:00:00', '789456123');
+
+
+INSERT INTO `policy` (policy_name)
+VALUES ('Health Insurance Premium Policy');
+
+INSERT INTO `policy` (policy_name)
+VALUES ('Basic Health Coverage');
+
+INSERT INTO `policy` (policy_name)
+VALUES ('Comprehensive Family Plan');
+
+INSERT INTO `policy` (policy_name)
+VALUES ('Senior Citizen Health Policy');
+
+INSERT INTO `policy` (policy_name)
+VALUES ('Critical Illness Coverage');
+
+
+INSERT INTO `provider` (provider_id, provider_name, provider_address, provider_contact, provider_bank_details)
+VALUES ('provider1', 'MediCare Hospital', '123 Health St, City A', '123-456-7890', JSON_OBJECT('bank_name', 'ABC Bank', 'account_number', '123456789', 'ifsc', 'ABC1234'));
+
+INSERT INTO `provider` (provider_id, provider_name, provider_address, provider_contact, provider_bank_details)
+VALUES ('provider2', 'LifeCare Clinic', '456 Wellness Ave, City B', '987-654-3210', JSON_OBJECT('bank_name', 'XYZ Bank', 'account_number', '987654321', 'ifsc', 'XYZ5678'));
+
+INSERT INTO `provider` (provider_id, provider_name, provider_address, provider_contact, provider_bank_details)
+VALUES ('provider3', 'HealthFirst Clinic', '789 Care Blvd, City C', '555-555-5555', JSON_OBJECT('bank_name', 'DEF Bank', 'account_number', '111222333', 'ifsc', 'DEF1111'));
+
+INSERT INTO `provider` (provider_id, provider_name, provider_address, provider_contact, provider_bank_details)
+VALUES ('provider4', 'Prime Health Center', '101 Therapy Rd, City D', '222-333-4444', JSON_OBJECT('bank_name', 'GHI Bank', 'account_number', '444555666', 'ifsc', 'GHI9999'));
+
+INSERT INTO `provider` (provider_id, provider_name, provider_address, provider_contact, provider_bank_details)
+VALUES ('provider5', 'CareWell Hospital', '202 Medical Park, City E', '111-222-3333', JSON_OBJECT('bank_name', 'JKL Bank', 'account_number', '777888999', 'ifsc',
+
+
+INSERT INTO `provider_service_link` (service_id, provider_id, effective_from_date, effective_to_date)
+VALUES ('service1', 'provider1', '2024-01-01', '2025-01-01');
+
+INSERT INTO `provider_service_link` (service_id, provider_id, effective_from_date, effective_to_date)
+VALUES ('service2', 'provider2', '2023-06-01', '2024-06-01');
+
+INSERT INTO `provider_service_link` (service_id, provider_id, effective_from_date, effective_to_date)
+VALUES ('service3', 'provider3', '2022-09-01', '2023-09-01');
+
+INSERT INTO `provider_service_link` (service_id, provider_id, effective_from_date, effective_to_date)
+VALUES ('service4', 'provider4', '2024-02-01', '2025-02-01');
+
+INSERT INTO `provider_service_link` (service_id, provider_id, effective_from_date, effective_to_date)
+VALUES ('service5', 'provider5', '2024-05-01', '2025-05-01');
+
+
+
+INSERT INTO `service_codes` (service_code, service, description)
+VALUES ('SC101', 'Consultation', 'General physician consultation');
+
+INSERT INTO `service_codes` (service_code, service, description)
+VALUES ('SC102', 'X-ray', 'X-ray imaging service');
+
+INSERT INTO `service_codes` (service_code, service, description)
+VALUES ('SC103', 'MRI', 'Magnetic resonance imaging service');
+
+INSERT INTO `service_codes` (service_code, service, description)
+VALUES ('SC104', 'Blood Test', 'Routine blood testing service');
+
+INSERT INTO `service_codes` (service_code, service, description)
+VALUES ('SC105', 'Surgery', 'Basic surgical procedures');
